@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Калькулятор для мастера</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="top-bar">
+      <div>
+        <h1>Калькулятор мастера</h1>
+        <p>Сколько мастер получает на руки: в найме vs как самозанятый через платформу</p>
+      </div>
+      <div class="top-actions">
+        <a href="index.html" class="btn-theme">← Калькулятор</a>
+        <button class="btn-theme" id="themeToggle">◑ Сменить стиль</button>
+      </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 340px 1fr 1fr;">
+      <div class="card">
+        <h3>Параметры</h3>
+        <label>Выручка мастера в месяц, ₽
+          <input id="mRevenue" type="number" value="200000" min="0" step="5000">
+        </label>
+        <label>Зарплата в найме (на руки), ₽
+          <input id="mSalary" type="number" value="60000" min="0" step="1000">
+        </label>
+        <label>Доля мастера при аренде, %
+          <input id="mSplit" type="number" value="60" min="0" max="100" step="5">
+        </label>
+        <label>Комиссия платформы, %
+          <input id="mPlatform" type="number" value="5" min="0" max="20" step="0.5">
+        </label>
+        <label>Расходы мастера (материалы и тд), ₽
+          <input id="mExpenses" type="number" value="10000" min="0" step="1000">
+        </label>
+      </div>
+
+      <div class="card">
+        <h3>В найме</h3>
+        <div class="stat"><span>Выручка мастера</span><span class="val" id="hRevenue">—</span></div>
+        <div class="stat"><span>Зарплата на руки</span><span class="val" id="hSalary">—</span></div>
+        <div class="stat"><span>НДФЛ (13%)</span><span class="val" id="hNdfl">—</span></div>
+        <div class="stat"><span>Взносы работодателя (30%)</span><span class="val" id="hContrib">—</span></div>
+        <div class="stat"><span>Стоимость мастера для салона</span><span class="val" id="hCostSalon">—</span></div>
+        <div class="stat"><span>% от выручки на руки</span><span class="val" id="hPct">—</span></div>
+        <div class="stat"><span><strong>На руки в год</strong></span><span class="val" id="hYear">—</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Самозанятый через платформу</h3>
+        <div class="stat"><span>Выручка мастера</span><span class="val" id="sRevenue">—</span></div>
+        <div class="stat"><span>Доля мастера</span><span class="val" id="sSplit">—</span></div>
+        <div class="stat"><span>Комиссия платформы</span><span class="val" id="sPlatform">—</span></div>
+        <div class="stat"><span>Налог СМЗ (6%)</span><span class="val" id="sTax">—</span></div>
+        <div class="stat"><span>Расходы</span><span class="val" id="sExp">—</span></div>
+        <div class="stat"><span>% от выручки на руки</span><span class="val" id="sPct">—</span></div>
+        <div class="stat"><span><strong>На руки в месяц</strong></span><span class="val" id="sNet">—</span></div>
+        <div class="stat"><span><strong>На руки в год</strong></span><span class="val" id="sYear">—</span></div>
+      </div>
+    </div>
+
+    <div class="diff" id="diffBox">
+      <div><strong>Разница в месяц:</strong><br><span id="diffMonth">—</span></div>
+      <div><strong>Разница в год:</strong><br><span id="diffYear">—</span></div>
+    </div>
+
+    <div class="card" style="border-top:none; margin-top:0;">
+      <h3>Что ещё получает самозанятый</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0;">
+        <div style="padding:12px 16px; border-right:1px solid var(--border-light);">
+          <div style="font-size:10px; color:var(--accent-green); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Свобода</div>
+          <div style="font-size:12px; margin-top:4px; color:var(--text-muted);">Сам выбирает график, клиентов, цены. Нет подчинения.</div>
+        </div>
+        <div style="padding:12px 16px; border-right:1px solid var(--border-light);">
+          <div style="font-size:10px; color:var(--accent-green); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Простота</div>
+          <div style="font-size:12px; margin-top:4px; color:var(--text-muted);">Налог 6% — и всё. Нет бухгалтерии, деклараций, отчётности.</div>
+        </div>
+        <div style="padding:12px 16px;">
+          <div style="font-size:10px; color:var(--accent-green); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Масштаб</div>
+          <div style="font-size:12px; margin-top:4px; color:var(--text-muted);">Может работать в нескольких салонах, наращивать клиентскую базу.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-toolbar">
+      <a href="index.html" class="export-btn">← Вернуться к калькулятору</a>
+    </div>
+  </div>
+
+  <script>
+    const $=id=>document.getElementById(id);
+    const n=el=>{const v=parseFloat(el?.value);return isFinite(v)?v:0;};
+    const fmt=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ")+" ₽";
+
+    function calc(){
+      const rev=Math.max(0,n($("mRevenue")));
+      const sal=Math.max(0,n($("mSalary")));
+      const split=Math.max(0,Math.min(100,n($("mSplit"))));
+      const platRate=Math.max(0,n($("mPlatform")));
+      const exp=Math.max(0,n($("mExpenses")));
+
+      // Найм
+      const ndfl=sal*13/87; // обратный расчёт: sal = gross - 13%, gross = sal/0.87
+      const gross=sal+ndfl;
+      const contrib=gross*0.30;
+      const costSalon=gross+contrib;
+      const pctH=rev>0?((sal/rev)*100).toFixed(1):0;
+
+      $("hRevenue").textContent=fmt(rev);
+      $("hSalary").textContent=fmt(sal);
+      $("hNdfl").textContent=fmt(ndfl);
+      $("hContrib").textContent=fmt(contrib);
+      $("hCostSalon").textContent=fmt(costSalon);
+      $("hPct").textContent=pctH+"%";
+      $("hYear").textContent=fmt(sal*12);
+
+      // Самозанятый
+      const masterShare=rev*split/100;
+      const platFee=rev*platRate/100;
+      const smzTax=masterShare*0.06;
+      const sNet=masterShare-smzTax-exp;
+      const pctS=rev>0?((sNet/rev)*100).toFixed(1):0;
+
+      $("sRevenue").textContent=fmt(rev);
+      $("sSplit").textContent=fmt(masterShare)+" ("+split+"%)";
+      $("sPlatform").textContent=fmt(platFee);
+      $("sTax").textContent=fmt(smzTax);
+      $("sExp").textContent=fmt(exp);
+      $("sPct").textContent=pctS+"%";
+      $("sNet").textContent=fmt(sNet);
+      $("sYear").textContent=fmt(sNet*12);
+
+      const diffM=sNet-sal;
+      const diffY=diffM*12;
+      $("diffMonth").textContent=(diffM>=0?"+":"")+fmt(diffM);
+      $("diffYear").textContent=(diffY>=0?"+":"")+fmt(diffY);
+      $("diffBox").classList.toggle("danger",diffM<0);
+    }
+
+    ["mRevenue","mSalary","mSplit","mPlatform","mExpenses"].forEach(id=>{
+      const el=$(id);if(el){el.addEventListener("input",calc);el.addEventListener("change",calc);}
+    });
+
+    const t=$("themeToggle");
+    if(t)t.addEventListener("click",()=>{const m=document.body.classList.toggle("theme-modern");t.textContent=m?"◐ Брутализм":"◑ Сменить стиль";});
+
+    calc();
+  </script>
+</body>
+</html>

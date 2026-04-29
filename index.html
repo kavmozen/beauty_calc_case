@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Калькулятор налоговой нагрузки</title>
+
+  <!-- Brutalism fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="top-bar">
+      <div>
+        <h1>Налоговая нагрузка</h1>
+        <p>Сравнение «до» и «после» внедрения платформы для разных режимов налогообложения</p>
+      </div>
+      <div class="top-actions">
+        <a href="vat-usn.html" class="btn-theme">НДС на УСН 2026</a>
+        <a href="master.html" class="btn-theme">Для мастера</a>
+        <a href="precedents.html" class="btn-theme">Прецеденты</a>
+        <a href="faq.html" class="btn-theme">FAQ</a>
+        <button class="btn-theme" id="presentationToggle">▣ Презентация</button>
+        <button class="btn-theme" id="themeToggle">◑ Сменить стиль</button>
+      </div>
+    </div>
+
+    <div class="formula-toggle">
+      <input type="checkbox" id="showFormulas" />
+      <label for="showFormulas">Показать формулы расчётов</label>
+    </div>
+
+    <div class="grid">
+      <!-- ===== ВВОД ===== -->
+      <div class="card">
+        <h3>Параметры</h3>
+
+        <label>Режим налогообложения
+          <select id="regime">
+            <option value="usn6">УСН 6%</option>
+            <option value="usn15">УСН 15%</option>
+            <option value="osn">ОСН</option>
+          </select>
+        </label>
+
+        <label>Оборот салона, ₽
+          <input id="turnover" type="number" value="6500000" min="0" step="1000">
+        </label>
+
+        <label>Эквайринг банка, %
+          <input id="acquiring" type="number" value="1.79" min="0" max="10" step="0.01">
+        </label>
+
+        <label>Вывод наличных, ₽
+          <input id="cashWithdrawal" type="number" value="8490" min="0" step="100">
+        </label>
+
+        <label>Комиссия Мозен, %
+          <input id="platformFeeRate" type="number" value="5" min="0" max="20" step="0.1">
+        </label>
+
+        <label>Фикс. взносы ИП, ₽
+          <input id="fixedContrib" type="number" value="57390" min="0" step="1000">
+        </label>
+
+        <div class="toggle">
+          <input type="checkbox" id="includeOnePct" checked />
+          <label for="includeOnePct">1% свыше 300 000</label>
+        </div>
+
+        <div class="hidden" id="osnTypeWrap">
+          <label>Тип на ОСН
+            <select id="osnType">
+              <option value="ooo25">ООО (25%)</option>
+              <option value="ip13">ИП (13%)</option>
+              <option value="ip15">ИП (15%)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="hidden" id="osnVatWrap">
+          <div class="toggle">
+            <input type="checkbox" id="osnVat" />
+            <label for="osnVat">НДС 22%</label>
+          </div>
+        </div>
+
+        <div class="hidden" id="empContribWrap">
+          <label>Взносы за сотрудников, ₽
+            <input id="empContribSum" type="number" value="0" min="0" step="1000">
+          </label>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="hasEmployees" checked />
+          <label for="hasEmployees">Сотрудники</label>
+        </div>
+
+        <div class="row">
+          <label>Кол-во
+            <input id="empCount" type="number" value="15" min="0" step="1">
+          </label>
+          <label>Зарплата, ₽
+            <input id="empSalary" type="number" value="31250" min="0" step="1000">
+          </label>
+        </div>
+
+        <div class="row">
+          <label>Мастер, %
+            <input id="splitMaster" type="number" value="40" min="0" max="100" step="1">
+          </label>
+          <label>Салон, %
+            <input id="splitSalon" type="number" value="60" min="0" max="100" step="1">
+          </label>
+        </div>
+
+        <label id="extraLabel">Доп. расходы, ₽
+          <input id="extra" type="number" value="0" min="0" step="1000">
+        </label>
+
+        <div class="hidden" id="extra15Wrap">
+          <label>Расходы УСН 15%, ₽
+            <input id="extra15" type="number" value="0" min="0" step="1000">
+          </label>
+        </div>
+
+        <p class="muted">
+          УСН 6%: фикс.взносы вычитаются из налога.
+          УСН 15% / ОСН: из прибыли.
+        </p>
+      </div>
+
+      <!-- ===== ДО ВНЕДРЕНИЯ ===== -->
+      <div class="card">
+        <h3>До внедрения</h3>
+
+        <div class="stat"><span>Оборот</span><span class="val" id="revBefore">—</span></div>
+
+        <div class="stat"><span>Выплаты мастерам</span><span class="val" id="payMasterBefore">—</span></div>
+        <div class="formula" id="fPayMasterB"></div>
+
+        <div class="stat"><span>Эквайринг</span><span class="val" id="acqBefore">—</span></div>
+        <div class="formula" id="fAcqB"></div>
+
+        <div class="stat"><span>Вывод наличных</span><span class="val" id="cashBefore">—</span></div>
+        <div class="formula" id="fCashB"></div>
+
+        <div class="stat hidden" id="rowVatOutputBefore"><span>НДС исходящий</span><span class="val" id="vatOutputBefore">—</span></div>
+        <div class="formula" id="fVatOutputB"></div>
+        <div class="stat hidden" id="rowVatInputBefore"><span>НДС входящий</span><span class="val" id="vatInputBefore">—</span></div>
+        <div class="formula" id="fVatInputB"></div>
+        <div class="stat hidden" id="rowVatPayableBefore"><span>НДС к уплате</span><span class="val" id="vatPayableBefore">—</span></div>
+        <div class="formula" id="fVatPayableB"></div>
+        <div class="stat hidden" id="rowProfitTaxBefore"><span>Налог на прибыль</span><span class="val" id="profitTaxBefore">—</span></div>
+        <div class="formula" id="fProfitTaxB"></div>
+
+        <div class="stat" id="rowTaxBefore"><span id="taxLabelBefore">УСН</span><span class="val" id="taxBefore">—</span></div>
+        <div class="formula" id="fTaxB"></div>
+
+        <div class="stat"><span>1% взнос</span><span class="val" id="onePctBefore">—</span></div>
+        <div class="formula" id="fOnePctB"></div>
+
+        <div class="stat" id="rowEmpContribBefore"><span>Страховые сотр.</span><span class="val" id="empContribBefore">—</span></div>
+        <div class="formula" id="fEmpContribB"></div>
+
+        <div class="stat hidden" id="rowFixedContribBefore"><span>Фикс. взносы</span><span class="val" id="fixedContribBefore">—</span></div>
+        <div class="formula" id="fFixedContribB"></div>
+
+        <div class="stat"><span>Доп. расходы</span><span class="val" id="expBefore">—</span></div>
+
+        <div class="stat"><span><strong>Чисто салона</strong></span><span class="val" id="netBefore">—</span></div>
+        <div class="formula" id="fNetB"></div>
+      </div>
+
+      <!-- ===== ПОСЛЕ ВНЕДРЕНИЯ ===== -->
+      <div class="card">
+        <h3>После внедрения</h3>
+
+        <div class="stat"><span>Доход салона</span><span class="val" id="revAfter">—</span></div>
+        <div class="formula" id="fRevA"></div>
+
+        <div class="stat"><span>Комиссия Мозен</span><span class="val" id="platformFeeAfter">—</span></div>
+        <div class="formula" id="fPlatformA"></div>
+
+        <div class="stat hidden" id="rowVatOutputAfter"><span>НДС исходящий</span><span class="val" id="vatOutputAfter">—</span></div>
+        <div class="formula" id="fVatOutputA"></div>
+        <div class="stat hidden" id="rowVatInputAfter"><span>НДС входящий</span><span class="val" id="vatInputAfter">—</span></div>
+        <div class="formula" id="fVatInputA"></div>
+        <div class="stat hidden" id="rowVatPayableAfter"><span>НДС к уплате</span><span class="val" id="vatPayableAfter">—</span></div>
+        <div class="formula" id="fVatPayableA"></div>
+        <div class="stat hidden" id="rowProfitTaxAfter"><span>Налог на прибыль</span><span class="val" id="profitTaxAfter">—</span></div>
+        <div class="formula" id="fProfitTaxA"></div>
+
+        <div class="stat" id="rowTaxAfter"><span id="taxLabelAfter">УСН</span><span class="val" id="taxAfter">—</span></div>
+        <div class="formula" id="fTaxA"></div>
+
+        <div class="stat"><span>1% взнос</span><span class="val" id="onePctAfter">—</span></div>
+        <div class="formula" id="fOnePctA"></div>
+
+        <div class="stat hidden" id="rowFixedContribAfter"><span>Фикс. взносы</span><span class="val" id="fixedContribAfter">—</span></div>
+        <div class="formula" id="fFixedContribA"></div>
+
+        <div class="stat hidden" id="rowExpAfter"><span>Доп. расходы</span><span class="val" id="expAfter">—</span></div>
+
+        <div class="stat"><span><strong>Чисто салона</strong></span><span class="val" id="netAfter">—</span></div>
+        <div class="formula" id="fNetA"></div>
+      </div>
+    </div>
+
+    <div class="diff" id="diffBox">
+      <div><strong>Разница по нагрузке:</strong><br><span id="diffTax">—</span></div>
+      <div><strong>Разница по чистой прибыли:</strong><br><span id="diffNet">—</span></div>
+    </div>
+
+    <!-- График экономии за 12 месяцев -->
+    <div class="card chart-card" style="border-top:none; margin-top:0;">
+      <h3>Экономия за 12 месяцев</h3>
+      <canvas id="savingsChart" height="100"></canvas>
+    </div>
+
+    <!-- Окупаемость -->
+    <div class="card" style="border-top:none; margin-top:0;">
+      <h3>Окупаемость внедрения</h3>
+      <div style="display:flex; gap:24px; align-items:flex-end; flex-wrap:wrap;">
+        <div>
+          <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Комиссия Мозен / мес</div>
+          <div style="font-family:var(--font-display); font-size:28px; letter-spacing:1px; color:var(--accent);" id="paybackMozen">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Экономия / мес</div>
+          <div style="font-family:var(--font-display); font-size:28px; letter-spacing:1px; color:var(--accent-green);" id="paybackSaving">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Результат</div>
+          <div style="font-family:var(--font-display); font-size:32px; letter-spacing:1px;" id="paybackMonths">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Чистая выгода за 12 мес</div>
+          <div style="font-family:var(--font-display); font-size:32px; letter-spacing:1px; color:var(--accent-green);" id="profitYear">—</div>
+        </div>
+      </div>
+      <div id="paybackExplain" style="font-size:11px; color:var(--text-muted); margin-top:10px; line-height:1.6;"></div>
+    </div>
+
+    <!-- Сравнение сценариев -->
+    <div class="card" style="border-top:none; margin-top:0;">
+      <h3>Сравнение сценариев «После»</h3>
+      <p class="muted" style="margin-bottom:12px;">Покрутите параметры и сравните два варианта — например, разный сплит или комиссию платформы.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0;">
+        <div style="padding:16px; border-right:1px solid var(--border-light);">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); font-weight:600; margin-bottom:12px;">Сценарий A</div>
+          <label>Сплит салону, %
+            <input id="scA_split" type="number" value="60" min="0" max="100" step="5">
+          </label>
+          <label>Комиссия Мозен, %
+            <input id="scA_platform" type="number" value="5" min="0" max="20" step="0.5">
+          </label>
+          <div class="stat" style="margin-top:8px;"><span>Доход салона</span><span class="val" id="scA_rev">—</span></div>
+          <div class="stat"><span>Налог + 1%</span><span class="val" id="scA_tax">—</span></div>
+          <div class="stat"><span>Мозен</span><span class="val" id="scA_mozen">—</span></div>
+          <div class="stat"><span><strong>Чисто салона</strong></span><span class="val" id="scA_net">—</span></div>
+        </div>
+        <div style="padding:16px;">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); font-weight:600; margin-bottom:12px;">Сценарий B</div>
+          <label>Сплит салону, %
+            <input id="scB_split" type="number" value="50" min="0" max="100" step="5">
+          </label>
+          <label>Комиссия Мозен, %
+            <input id="scB_platform" type="number" value="3" min="0" max="20" step="0.5">
+          </label>
+          <div class="stat" style="margin-top:8px;"><span>Доход салона</span><span class="val" id="scB_rev">—</span></div>
+          <div class="stat"><span>Налог + 1%</span><span class="val" id="scB_tax">—</span></div>
+          <div class="stat"><span>Мозен</span><span class="val" id="scB_mozen">—</span></div>
+          <div class="stat"><span><strong>Чисто салона</strong></span><span class="val" id="scB_net">—</span></div>
+        </div>
+      </div>
+      <div class="diff" style="border:none; border-top:2px solid var(--border); margin-top:0; padding-top:12px;">
+        <div><strong>A лучше B на:</strong><br><span id="scDiff">—</span></div>
+      </div>
+    </div>
+
+    <div class="bottom-toolbar">
+      <button id="exportXlsx" class="export-btn">↓ Выгрузить в Excel</button>
+      <button id="exportPdf" class="export-btn">↓ Скачать PDF-отчёт</button>
+    </div>
+
+    <!-- Блок рисков -->
+    <div id="risksContainer" class="risks-wrap"></div>
+
+    <!-- hidden elements for mixed mode (kept for JS compatibility) -->
+    <div class="hidden" id="mixedIncomeWrap">
+      <input id="incomePatent" type="hidden" value="0">
+      <input id="incomeUsn" type="hidden" value="0">
+      <input id="mixedAfterFromSalonIncome" type="hidden">
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
